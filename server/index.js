@@ -91,7 +91,9 @@ app.get("/api/user/logout", auth, (req, res) => {
     });
 });
 
-
+app.get("/",(req,res)=>{
+    res.json({"Hello":"I am Happy for Deployment"})
+})
 const port = process.env.PORT || 5000
 
 app.listen(port, () => {
