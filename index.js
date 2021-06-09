@@ -5,7 +5,7 @@ const config = require('./config/key')
 const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
 const {User}= require('./models/user');
-
+const { auth}= require('./middleware/auth')
 
 
 const connect = mongoose.connect(config.mongoURI,
@@ -24,8 +24,18 @@ app.use(bodyParser.urlencoded({
 }));
 app.use(cookieParser());
 
-app.get('/api/user/auth',(req,res)=>{
-    
+app.get('/api/user/auth',auth, (req,res)=>{
+        res.status(200).json({
+            _id: req.user._id,
+            // isAdmin: req.user.role === 0 ? false : true,
+            isAuth: true,
+            email: req.user.email,
+            name: req.user.name,
+            lastname: req.user.lastname,
+            role: req.user.role,
+            // image: req.user.image,
+        });
+
 })
 
 
@@ -59,7 +69,7 @@ app.post("/api/user/login", (req, res) => {
 
         user.generateToken((err, user) => {
                 if (err) return res.status(400).send(err);
-                res.cookie("w_authExp", user.tokenExp);
+                // res.cookie("w_authExp", user.tokenExp);
                 res
                     .cookie("w_auth", user.token)
                     .status(200)
@@ -71,6 +81,15 @@ app.post("/api/user/login", (req, res) => {
     });
 });
 
+
+app.get("/api/user/logout", auth, (req, res) => {
+    User.findOneAndUpdate({ _id: req.user._id }, { token: "" }, (err, doc) => {
+        if (err) return res.json({ success: false, err });
+        return res.status(200).send({
+            success: true
+        });
+    });
+});
 
 
 const port = process.env.PORT || 5000
